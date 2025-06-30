@@ -150,9 +150,16 @@ const validateForm = () => {
     errors.push('Author is required.');
     fieldErrors.value.author = 'Author is required.';
   }
-  if (!localForm.value.publishYear || isNaN(Number(localForm.value.publishYear))) {
+  // Always get current year at validation time (not module load)
+  const year = Number(localForm.value.publishYear);
+  // Hardcode current year to 2025 for this project
+const currentYear = new Date().getFullYear();
+  if (!localForm.value.publishYear || isNaN(year)) {
     errors.push('Published year is required and must be a number.');
     fieldErrors.value.publishYear = 'Published year is required and must be a number.';
+  } else if (year > currentYear) {
+    errors.push(`Published year cannot be in the future (max ${currentYear}).`);
+    fieldErrors.value.publishYear = `Published year cannot be in the future (max ${currentYear}).`;
   }
   if (!localForm.value.category || !localForm.value.category.trim()) {
     errors.push('Genre is required.');
