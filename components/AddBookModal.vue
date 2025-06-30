@@ -136,7 +136,7 @@ watch(() => props.show, (val) => {
 });
 
 watch(() => localForm.value.ratings, (newRatings) => {
-  console.log('Updated Ratings:', newRatings);
+  // ...removed console.log for production...
 }, { deep: true });
 
 const validateForm = () => {
@@ -182,7 +182,7 @@ async function onSubmit() {
     .map(([source, value]) => ({ source, value }));
 
   const bookData = { ...localForm.value, ratings: formattedRatings };
-  console.log('Submitting Book Data:', bookData);
+  // ...removed console.log for production...
   const config = useRuntimeConfig();
   try {
     await $fetch(String(config.public.NUXT_PUBLIC_API_URL), {
