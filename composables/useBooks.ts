@@ -1,5 +1,6 @@
 
 import { useRuntimeConfig, useFetch } from '#app';
+import { ref, onMounted } from 'vue';
 
 interface Book {
   id: string
@@ -11,18 +12,32 @@ interface Book {
 }
 
 export function useBooks() {
-const apiUrl = "https://63c10327716562671870f959.mockapi.io/books"; // useFetch returns refs: data, pending, error, refresh
-  const { data, pending, error, refresh } = useFetch<Book[]>(apiUrl, {
-    key: 'books-list',
-    server: true,
-    lazy: false,
-    default: () => []
-  });
+  const config = useRuntimeConfig();
+  const apiUrl = config.public.NUXT_PUBLIC_API_URL as string;
+
+  const books = ref<Book[] | null>(null);
+  const loading = ref(false);
+  const error = ref<any>(null);
+
+  const fetchBooks = async () => {
+    loading.value = true;
+    error.value = null;
+    try {
+      books.value = await $fetch(apiUrl);
+    } catch (err) {
+      error.value = err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  // Fetch on composable use
+  onMounted(fetchBooks);
 
   return {
-    books: data,
-    loading: pending,
+    books,
+    loading,
     error,
-    fetchBooks: refresh // keep API compatible with old usage
+    fetchBooks
   };
 }

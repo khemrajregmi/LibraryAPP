@@ -27,4 +27,9 @@ export default defineNuxtConfig({
   css: [
     '~/assets/css/tailwind.css',
   ],
+  runtimeConfig: {
+    public: {
+      NUXT_PUBLIC_API_URL: process.env.NUXT_PUBLIC_API_URL
+    }
+  }
 })

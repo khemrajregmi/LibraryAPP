@@ -3,9 +3,15 @@
     <HeaderComponent @openAddModal="showAddModal = true" />
 
     <main class="flex-1 container mx-auto py-8 px-4">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-2">
-        <label for="search" class="sr-only">Search Books</label>
-        <input id="search" v-model="search" type="text" placeholder="Filter books..." class="border rounded px-3 py-2 w-64 focus:outline-none focus:ring focus:border-blue-300" aria-label="Search Books" />
+      <div class="flex flex-row items-center mb-4 gap-2 justify-between">
+        <div class="flex flex-row items-center gap-2">
+          <label for="search" class="sr-only">Search Books</label>
+          <input id="search" v-model="search" type="text" placeholder="Filter books..." class="border rounded px-3 py-2 w-64 focus:outline-none focus:ring focus:border-blue-300" aria-label="Search Books" />
+        </div>
+        <button class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition flex items-center" @click="showAddModal = true">
+          <span class="material-icons align-middle mr-1">add</span>
+          Add a Book
+        </button>
       </div>
       <div class="table-wrapper">
         <div class="overflow-x-auto bg-white rounded-2xl shadow-lg border border-gray-100">
@@ -79,7 +85,13 @@
 
     <FooterComponent />
 
-
+    <AddBookModal
+      :show="showAddModal"
+      :form="addForm"
+      :error="addFormError"
+      @close="closeAddModal"
+      @submit="handleAddBookSubmit"
+    />
 
     <div v-if="successMessage" class="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg">{{ successMessage }}</div>
     <div v-if="errorMessage" class="fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg">{{ errorMessage }}</div>
@@ -90,9 +102,12 @@
 import { ref, computed } from 'vue';
 import { useBooks } from '../composables/useBooks';
 
+
 import HeaderComponent from '../components/AppHeader.vue';
 import FooterComponent from '../components/AppFooter.vue';
 import SkeletonLoader from '../components/SkeletonLoader.vue';
+import { defineAsyncComponent } from 'vue';
+const AddBookModal = defineAsyncComponent(() => import('../components/AddBookModal.vue'));
 
 const { books, loading, error, fetchBooks } = useBooks();
 const search = ref('');
