@@ -178,14 +178,16 @@ function groupBooksByDecade(books) {
 const decadeIntervals = computed(() => groupBooksByDecade(books.value));
 const decadeIntervalsFiltered = computed(() => {
   if (!search.value) return decadeIntervals.value;
-  // Filter books by name, author, or genre
+  const searchTerm = search.value.toLowerCase();
   return decadeIntervals.value.map((interval) => ({
     ...interval,
-    books: interval.books.filter((book) =>
-      book.name?.toLowerCase().includes(search.value.toLowerCase()) ||
-      book.author?.toLowerCase().includes(search.value.toLowerCase()) ||
-      book.category?.toLowerCase().includes(search.value.toLowerCase())
-    ),
+    books: interval.books.filter((book) => {
+      const nameMatch = book.name?.toLowerCase().includes(searchTerm);
+      const authorMatch = book.author?.toLowerCase().includes(searchTerm);
+      const genreMatch = book.category?.toLowerCase().includes(searchTerm);
+      const yearMatch = book.publishYear?.toString().includes(searchTerm);
+      return nameMatch || authorMatch || genreMatch || yearMatch;
+    }),
   }));
 });
 
