@@ -1,59 +1,44 @@
 <template>
-  <div class="skeleton-loader">
-    <div class="skeleton-row" v-for="n in 3" :key="n">
-      <div class="skeleton-avatar"></div>
-      <div class="skeleton-lines">
-        <div class="skeleton-line w-32"></div>
-        <div class="skeleton-line w-24"></div>
-      </div>
-    </div>
+  <div class="space-y-4">
+    <ContentLoader
+      v-for="i in 10"
+      :key="i"
+      :height="60"
+      :width="'100%'"
+      class="rounded-lg shadow-md border border-gray-200 bg-gray-50"
+      background-color="#f3f4f6"
+      foreground-color="#e5e7eb"
+    >
+      <!-- Checkbox -->
+      <rect x="10" y="20" rx="3" ry="3" width="30" height="20" />
+
+      <!-- ID -->
+      <rect x="50" y="20" rx="3" ry="3" width="80" height="20" />
+
+      <!-- Book Name + Avatar -->
+      <circle cx="150" cy="30" r="16" />
+      <rect x="180" y="18" rx="3" ry="3" width="200" height="12" />
+      <rect x="180" y="34" rx="3" ry="3" width="150" height="10" />
+
+      <!-- Author -->
+      <rect x="350" y="20" rx="3" ry="3" width="300" height="16" />
+
+      <!-- Genre -->
+      <rect x="670" y="20" rx="12" ry="12" width="150" height="20" />
+
+      <!-- Published Year -->
+      <rect x="830" y="20" rx="3" ry="3" width="120" height="16" />
+
+      <!-- Ratings -->
+      <rect x="970" y="20" rx="12" ry="12" width="160" height="20" />
+      <rect x="1140" y="20" rx="12" ry="12" width="150" height="20" />
+
+      <!-- Actions -->
+      <rect x="1300" y="20" rx="3" ry="3" width="50" height="24" />
+    </ContentLoader>
   </div>
 </template>
 
-<script setup lang="ts">
-// No logic needed for static skeleton
+<script setup>
+import { ContentLoader } from 'vue-content-loader'
 </script>
-
-<style scoped>
-.skeleton-loader {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: 1rem 0;
-}
-.skeleton-row {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-.skeleton-avatar {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 50%;
-  background: linear-gradient(90deg, #e0e0e0 25%, #f5f5f5 50%, #e0e0e0 75%);
-  animation: skeleton-loading 1.2s infinite linear;
-}
-.skeleton-lines {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-.skeleton-line {
-  height: 0.75rem;
-  border-radius: 0.375rem;
-  background: linear-gradient(90deg, #e0e0e0 25%, #f5f5f5 50%, #e0e0e0 75%);
-  animation: skeleton-loading 1.2s infinite linear;
-}
-.skeleton-line.w-32 { width: 8rem; }
-.skeleton-line.w-24 { width: 6rem; }
-
-@keyframes skeleton-loading {
-  0% {
-    background-position: -200px 0;
-  }
-  100% {
-    background-position: calc(200px + 100%) 0;
-  }
-}
-</style>
