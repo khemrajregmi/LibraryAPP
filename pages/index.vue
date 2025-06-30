@@ -19,13 +19,27 @@
             <table class="min-w-full divide-y divide-gray-200">
               <thead class="bg-gray-50">
                 <tr>
-                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200"><input type="checkbox" aria-label="Select All Books" /></th>
-                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">ID</th>
-                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">Name</th>
-                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">Author</th>
-                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">Genre</th>
-                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">Published Year</th>
-                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">Ratings</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">
+                    <input type="checkbox" aria-label="Select All Books" v-model="selectAll" @change="toggleSelectAll" />
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200 cursor-pointer" @click="sortBy('id')">
+                    ID <span v-if="sortKey === 'id'">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200 cursor-pointer" @click="sortBy('name')">
+                    Name <span v-if="sortKey === 'name'">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200 cursor-pointer" @click="sortBy('author')">
+                    Author <span v-if="sortKey === 'author'">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200 cursor-pointer" @click="sortBy('category')">
+                    Genre <span v-if="sortKey === 'category'">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200 cursor-pointer" @click="sortBy('publishYear')">
+                    Published Year <span v-if="sortKey === 'publishYear'">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200 cursor-pointer" @click="sortBy('ratingAvg')">
+                    Ratings <span v-if="sortKey === 'ratingAvg'">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
+                  </th>
                   <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">Actions</th>
                 </tr>
               </thead>
@@ -38,15 +52,15 @@
                   </tr>
                 </template>
                 <template v-else>
-                  <template v-for="(interval, idx) in decadeIntervalsFiltered" :key="idx">
+                  <template v-for="(interval, idx) in paginatedDecadeIntervals" :key="idx">
                     <tr class="bg-gray-50">
                       <td colspan="8" class="font-semibold py-2 px-4 border-t border-b text-blue-700 bg-gray-50 text-left" aria-label="Decade Interval">{{ interval.label }}</td>
                     </tr>
                     <tr v-if="!interval.books.length">
                       <td colspan="8" class="italic text-gray-400 py-2 px-4 border-b bg-white text-center">No publications</td>
                     </tr>
-                    <tr v-for="(book, bIdx) in interval.books.slice(0, recordsPerPage)" :key="book.id" class="hover:bg-blue-50 transition">
-                      <td class="px-4 py-3"><input type="checkbox" aria-label="Select Book" /></td>
+                    <tr v-for="(book, bIdx) in interval.books" :key="book.id" class="hover:bg-blue-50 transition cursor-pointer" @click="openBookDetails(book)">
+                      <td class="px-4 py-3"><input type="checkbox" aria-label="Select Book" v-model="selectedBooks" :value="book.id" @click.stop /></td>
                       <td class="px-4 py-3">{{ book.id || bIdx + 1 }}</td>
                       <td class="px-4 py-3 flex items-center gap-3">
                         <span class="inline-flex w-8 h-8 rounded-full bg-gray-200 items-center justify-center text-gray-500 font-bold mr-3 text-base align-middle" aria-hidden="true">
@@ -73,13 +87,21 @@
                         <span v-else>-</span>
                       </td>
                       <td class="px-4 py-3 text-right">
-                        <button class="text-gray-400 hover:text-gray-700 transition" aria-label="More Options"><span class="material-icons">more_vert</span></button>
+                        <button class="text-gray-400 hover:text-gray-700 transition" aria-label="More Options" @click.stop><span class="material-icons">more_vert</span></button>
                       </td>
                     </tr>
                   </template>
                 </template>
               </tbody>
             </table>
+            <!-- Pagination Controls -->
+            <div class="flex justify-between items-center py-4">
+              <div>
+                <button class="px-3 py-1 rounded bg-gray-200 mr-2" :disabled="currentPage === 1" @click="prevPage">Prev</button>
+                <span>Page {{ currentPage }} of {{ totalPages }}</span>
+                <button class="px-3 py-1 rounded bg-gray-200 ml-2" :disabled="currentPage === totalPages" @click="nextPage">Next</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -97,11 +119,31 @@
 
     <div v-if="successMessage" class="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg">{{ successMessage }}</div>
     <div v-if="errorMessage" class="fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg">{{ errorMessage }}</div>
+
+    <!-- Book Details Modal -->
+    <template v-if="showBookDetailsModal && bookDetails">
+      <div class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
+          <button class="absolute top-2 right-2 text-gray-400 hover:text-gray-700" @click="closeBookDetails" aria-label="Close">&times;</button>
+          <h2 class="text-xl font-bold mb-4">Book Details</h2>
+          <div class="mb-2"><strong>Name:</strong> {{ bookDetails.name }}</div>
+          <div class="mb-2"><strong>Author:</strong> {{ bookDetails.author }}</div>
+          <div class="mb-2"><strong>Genre:</strong> {{ bookDetails.category }}</div>
+          <div class="mb-2"><strong>Published Year:</strong> {{ Math.abs(bookDetails.publishYear) }} {{ bookDetails.publishYear < 0 ? 'BC' : 'AD' }}</div>
+          <div class="mb-2"><strong>Ratings:</strong>
+            <span v-if="bookDetails.ratings && bookDetails.ratings.length">
+              <span v-for="(rating, idx) in bookDetails.ratings" :key="idx" class="inline-block px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold mr-1">{{ rating.source }}: {{ rating.value }}</span>
+            </span>
+            <span v-else>-</span>
+          </div>
+        </div>
+      </div>
+    </template>
     </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useBooks } from '../composables/useBooks';
 
 
@@ -113,6 +155,10 @@ const AddBookModal = defineAsyncComponent(() => import('../components/AddBookMod
 
 const { books, loading, error, fetchBooks } = useBooks();
 const search = ref('');
+// Reset to first page when search changes
+watch(search, () => {
+  currentPage.value = 1;
+});
 const showAddModal = ref(false);
 const addForm = ref({
   name: '',
@@ -126,11 +172,18 @@ const addForm = ref({
   },
 });
 const addFormError = ref('');
-const recordsPerPage = ref(20);
 const props = defineProps({
   title: String,
 });
 const isRefreshing = ref(false);
+const currentPage = ref(1);
+const pageSize = ref(10);
+const selectedBooks = ref([]);
+const selectAll = ref(false);
+const sortKey = ref('id');
+const sortOrder = ref('asc');
+const bookDetails = ref(null);
+const showBookDetailsModal = ref(false);
 
 useHead({
   title: 'My Book Library',
@@ -138,6 +191,75 @@ useHead({
     { name: 'description', content: 'Manage and browse your personal book collection with ease.' }
   ]
 })
+
+// Remove old decadeIntervals, decadeIntervalsFiltered, paginatedBooks, totalBooks, totalPages
+
+// 1. Flatten, filter, sort, and paginate all books globally
+const allFilteredSortedBooks = computed(() => {
+  let allBooks = books.value ? [...books.value] : [];
+  // Filter
+  if (search.value) {
+    const searchTerm = search.value.toLowerCase();
+    allBooks = allBooks.filter((book) => {
+      const nameMatch = book.name?.toLowerCase().includes(searchTerm);
+      const authorMatch = book.author?.toLowerCase().includes(searchTerm);
+      const genreMatch = book.category?.toLowerCase().includes(searchTerm);
+      const yearMatch = book.publishYear?.toString().includes(searchTerm);
+      return nameMatch || authorMatch || genreMatch || yearMatch;
+    });
+  }
+  // Sort
+  if (sortKey.value) {
+    allBooks.sort((a, b) => {
+      let aVal = a[sortKey.value];
+      let bVal = b[sortKey.value];
+      if (sortKey.value === 'ratingAvg') {
+        aVal = a.ratings && a.ratings.length ? a.ratings.reduce((s, r) => s + r.value, 0) / a.ratings.length : 0;
+        bVal = b.ratings && b.ratings.length ? b.ratings.reduce((s, r) => s + r.value, 0) / b.ratings.length : 0;
+      }
+      if (typeof aVal === 'string') aVal = aVal.toLowerCase();
+      if (typeof bVal === 'string') bVal = bVal.toLowerCase();
+      if (aVal < bVal) return sortOrder.value === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortOrder.value === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }
+  return allBooks;
+});
+
+const totalBooks = computed(() => allFilteredSortedBooks.value.length);
+const totalPages = computed(() => Math.max(1, Math.ceil(totalBooks.value / pageSize.value)));
+
+const paginatedBooks = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value;
+  return allFilteredSortedBooks.value.slice(start, start + pageSize.value);
+});
+
+// 2. Group only the paginated books by decade for display
+const paginatedDecadeIntervals = computed(() => groupBooksByDecade(paginatedBooks.value));
+
+// Update toggleSelectAll to select all books on current page
+function toggleSelectAll() {
+  if (selectAll.value) {
+    const allIds = paginatedBooks.value.map(book => book.id);
+    selectedBooks.value = allIds;
+  } else {
+    selectedBooks.value = [];
+  }
+}
+
+// Update exportSelected to use only selected books from all books
+function exportSelected() {
+  // Export selected books as JSON
+  const selected = allFilteredSortedBooks.value.filter(book => selectedBooks.value.includes(book.id));
+  const blob = new Blob([JSON.stringify(selected, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'selected-books.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 function groupBooksByDecade(books) {
   if (!Array.isArray(books) || !books.length) return [];
@@ -192,21 +314,7 @@ function groupBooksByDecade(books) {
   return result;
 }
 
-const decadeIntervals = computed(() => groupBooksByDecade(books.value));
-const decadeIntervalsFiltered = computed(() => {
-  if (!search.value) return decadeIntervals.value;
-  const searchTerm = search.value.toLowerCase();
-  return decadeIntervals.value.map((interval) => ({
-    ...interval,
-    books: interval.books.filter((book) => {
-      const nameMatch = book.name?.toLowerCase().includes(searchTerm);
-      const authorMatch = book.author?.toLowerCase().includes(searchTerm);
-      const genreMatch = book.category?.toLowerCase().includes(searchTerm);
-      const yearMatch = book.publishYear?.toString().includes(searchTerm);
-      return nameMatch || authorMatch || genreMatch || yearMatch;
-    }),
-  }));
-});
+
 
 function formatYear(year) {
   return year.toString();
@@ -242,6 +350,56 @@ function showErrorMessage(message) {
   setTimeout(() => {
     errorMessage.value = '';
   }, 3000);
+}
+
+function nextPage() {
+  if (currentPage.value < totalPages.value) currentPage.value++;
+}
+function prevPage() {
+  if (currentPage.value > 1) currentPage.value--;
+}
+
+function sortBy(key) {
+  if (sortKey.value === key) {
+    sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc';
+  } else {
+    sortKey.value = key;
+    sortOrder.value = 'asc';
+  }
+}
+
+
+
+async function deleteSelected() {
+  if (!selectedBooks.value.length) return;
+  if (!confirm('Are you sure you want to delete the selected books?')) return;
+  const config = useRuntimeConfig();
+  let deletedCount = 0;
+  for (const bookId of selectedBooks.value) {
+    try {
+      await $fetch(`${config.public.NUXT_PUBLIC_API_URL}/${bookId}`, { method: 'DELETE' });
+      deletedCount++;
+    } catch (e) {
+      // Optionally handle error per book
+    }
+  }
+  showSuccessMessage(`${deletedCount} book(s) deleted.`);
+  selectedBooks.value = [];
+  selectAll.value = false;
+  isRefreshing.value = true;
+  await fetchBooks();
+  isRefreshing.value = false;
+}
+
+
+
+function openBookDetails(book) {
+  bookDetails.value = book;
+  showBookDetailsModal.value = true;
+}
+function closeBookDetails() {
+  showBookDetailsModal.value = false;
+  bookDetails.value = null;
 }
 </script>
 
