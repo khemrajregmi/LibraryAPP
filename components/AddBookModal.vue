@@ -6,6 +6,9 @@
       </button>
       <h2 class="text-xl font-bold mb-4" id="modal-title">Add a Book</h2>
       <form @submit.prevent="onSubmit" class="space-y-4" aria-labelledby="modal-title">
+        <div v-if="errorMessage" class="mb-2 p-2 rounded bg-red-100 text-red-700 text-sm" role="alert">
+          {{ errorMessage }}
+        </div>
         <div>
           <label for="title" class="block text-sm font-medium mb-1">Title *</label>
           <input id="title" v-model="localForm.name" type="text" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300" aria-required="true" aria-describedby="title-description" @input="fieldErrors.name = ''" />
@@ -161,7 +164,7 @@ const validateForm = () => {
 async function onSubmit() {
   const errors = validateForm();
   if (errors.length) {
-    errorMessage.value = errors.join(' ');
+    // Do not set errorMessage for validation errors; only use fieldErrors
     return;
   }
   loading.value = true;

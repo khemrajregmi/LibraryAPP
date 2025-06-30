@@ -7,7 +7,8 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "test": "vitest"
   },
   "dependencies": {
     "@nuxt/content": "^3.6.1",
@@ -26,6 +27,10 @@
     "vue-star-rating": "^2.1.0"
   },
   "devDependencies": {
-    "@nuxtjs/tailwindcss": "^7.0.0-beta.0"
+    "@nuxtjs/tailwindcss": "^7.0.0-beta.0",
+    "@vitejs/plugin-vue": "^6.0.0",
+    "@vue/test-utils": "^2.4.6",
+    "jsdom": "^26.1.0",
+    "vitest": "^3.2.4"
   }
 }
