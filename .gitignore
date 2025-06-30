@@ -1,3 +1,5 @@
+# Ignore Vercel build output and config
+.vercel/
 # Nuxt dev/build outputs
 .output
 .data

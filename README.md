@@ -1,3 +1,6 @@
+# Output
+
+Production Deployment: [https://library-app-two-topaz.vercel.app/](https://library-app-two-topaz.vercel.app/)
 # LibraryApp
 
 A Nuxt 3 + Vue 3 Library App for managing and browsing books, with decade grouping, add modal, and full API integration.
