@@ -120,12 +120,16 @@
     <div v-if="successMessage" class="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg">{{ successMessage }}</div>
     <div v-if="errorMessage" class="fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg">{{ errorMessage }}</div>
 
-    <!-- Book Details Modal -->
+    <!-- Book Details Modal (styled to match AddBookModal, listing visible) -->
     <template v-if="showBookDetailsModal && bookDetails">
-      <div class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
-          <button class="absolute top-2 right-2 text-gray-400 hover:text-gray-700" @click="closeBookDetails" aria-label="Close">&times;</button>
-          <h2 class="text-xl font-bold mb-4">Book Details</h2>
+      <div class="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+        <!-- Light overlay, pointer-events only for modal -->
+        <div class="absolute inset-0 bg-gray-900 bg-opacity-10" aria-hidden="true"></div>
+        <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative z-10 pointer-events-auto" role="dialog" aria-modal="true" @keydown.esc="closeBookDetails" tabindex="0" @click.self="closeBookDetails">
+          <button type="button" @click="closeBookDetails" class="absolute top-2 right-2 text-gray-400 hover:text-gray-700" aria-label="Close modal">
+            <span class="material-icons" aria-hidden="true">close</span>
+          </button>
+          <h2 class="text-xl font-bold mb-4" id="modal-title">Book Details</h2>
           <div class="mb-2"><strong>Name:</strong> {{ bookDetails.name }}</div>
           <div class="mb-2"><strong>Author:</strong> {{ bookDetails.author }}</div>
           <div class="mb-2"><strong>Genre:</strong> {{ bookDetails.category }}</div>
@@ -135,6 +139,9 @@
               <span v-for="(rating, idx) in bookDetails.ratings" :key="idx" class="inline-block px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold mr-1">{{ rating.source }}: {{ rating.value }}</span>
             </span>
             <span v-else>-</span>
+          </div>
+          <div class="flex justify-end gap-2 mt-6">
+            <button type="button" @click="closeBookDetails" class="px-4 py-2 rounded bg-gray-100 text-gray-700 hover:bg-gray-200" aria-label="Close">Close</button>
           </div>
         </div>
       </div>
@@ -194,7 +201,8 @@ useHead({
 
 // Remove old decadeIntervals, decadeIntervalsFiltered, paginatedBooks, totalBooks, totalPages
 
-// 1. Flatten, filter, sort, and paginate all books globally
+
+// 1. Flatten, filter, and sort all books globally
 const allFilteredSortedBooks = computed(() => {
   let allBooks = books.value ? [...books.value] : [];
   // Filter
@@ -227,16 +235,40 @@ const allFilteredSortedBooks = computed(() => {
   return allBooks;
 });
 
-const totalBooks = computed(() => allFilteredSortedBooks.value.length);
-const totalPages = computed(() => Math.max(1, Math.ceil(totalBooks.value / pageSize.value)));
+// 2. Group all filtered/sorted books by decade
+const allDecadeIntervals = computed(() => groupBooksByDecade(allFilteredSortedBooks.value));
 
-const paginatedBooks = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value;
-  return allFilteredSortedBooks.value.slice(start, start + pageSize.value);
+// 3. Flatten grouped books for pagination (preserving decade groupings)
+const flattenedBooks = computed(() => {
+  return allDecadeIntervals.value.flatMap(interval => interval.books.map(book => ({ ...book, _decadeLabel: interval.label })));
 });
 
-// 2. Group only the paginated books by decade for display
-const paginatedDecadeIntervals = computed(() => groupBooksByDecade(paginatedBooks.value));
+const totalBooks = computed(() => flattenedBooks.value.length);
+const totalPages = computed(() => Math.max(1, Math.ceil(totalBooks.value / pageSize.value)));
+
+// 4. Paginate the flattened array
+const paginatedBooks = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value;
+  return flattenedBooks.value.slice(start, start + pageSize.value);
+});
+
+// 5. Regroup the paginated books by decade for display
+const paginatedDecadeIntervals = computed(() => {
+  // Use the _decadeLabel property to group
+  const groups = {};
+  paginatedBooks.value.forEach(book => {
+    const label = book._decadeLabel || 'Unknown';
+    if (!groups[label]) groups[label] = [];
+    groups[label].push(book);
+  });
+  // Preserve order from allDecadeIntervals
+  return allDecadeIntervals.value
+    .filter(interval => groups[interval.label])
+    .map(interval => ({
+      label: interval.label,
+      books: groups[interval.label] || []
+    }));
+});
 
 // Update toggleSelectAll to select all books on current page
 function toggleSelectAll() {
