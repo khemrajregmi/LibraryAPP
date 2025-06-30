@@ -5,9 +5,9 @@
       :key="i"
       :height="60"
       :width="'100%'"
-      class="rounded-lg shadow-md border border-gray-200 bg-gray-50"
-      background-color="#f3f4f6"
-      foreground-color="#e5e7eb"
+      class="rounded-lg shadow-md border border-gray-300 bg-white"
+      background-color="#e5e7eb"
+      foreground-color="#444"
     >
       <!-- Checkbox -->
       <rect x="10" y="20" rx="3" ry="3" width="30" height="20" />
