@@ -61,7 +61,9 @@
                       <td class="px-4 py-3">
                         <span class="px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">{{ book.category }}</span>
                       </td>
-                      <td class="px-4 py-3">{{ formatYear(book.publishYear) }}</td>
+                      <td class="px-4 py-3">
+                        {{ Math.abs(book.publishYear) }} {{ book.publishYear < 0 ? 'BC' : 'AD' }}
+                      </td>
                       <td class="px-4 py-3">
                         <span v-if="book.ratings && book.ratings.length">
                           <span v-for="(rating, rIdx) in book.ratings" :key="rIdx">
